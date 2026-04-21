@@ -66,6 +66,11 @@ button {
   cursor: pointer;
 }
 
+.copy-btn {
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
 .meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -129,6 +134,10 @@ button {
 .pill.offline {
   background: rgba(239, 68, 68, 0.16);
   color: #fca5a5;
+}
+
+.card-actions {
+  margin-top: 14px;
 }
 
 .tags {

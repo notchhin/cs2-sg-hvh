@@ -12,7 +12,7 @@
         <div>
           <p class="eyebrow">Realtime tracker</p>
           <h1>CS2 Singapore server tracker</h1>
-          <p class="sub">Polling every 10 seconds from the public hvh.wtf server list.</p>
+          <p class="sub">Polling every 10 seconds from the public hvh.wtf server list. Player counts come from that feed, so they are near realtime, not direct server queries.</p>
         </div>
         <button id="refreshBtn">Refresh now</button>
       </header>
@@ -93,8 +93,28 @@
                 <strong>${server.country || server.region || 'Unknown'}</strong>
               </div>
             </div>
+            <div class="card-actions">
+              <button class="copy-btn" data-address="${server.address}">Copy IP</button>
+            </div>
             <p class="tags">${(server.tags || []).join(' · ') || 'No tags'}</p>
           `;
+
+          const copyBtn = card.querySelector('.copy-btn');
+          copyBtn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(server.address);
+              copyBtn.textContent = 'Copied';
+              setTimeout(() => {
+                copyBtn.textContent = 'Copy IP';
+              }, 1200);
+            } catch (error) {
+              copyBtn.textContent = 'Copy failed';
+              setTimeout(() => {
+                copyBtn.textContent = 'Copy IP';
+              }, 1200);
+            }
+          });
+
           gridEl.appendChild(card);
         });
       }
