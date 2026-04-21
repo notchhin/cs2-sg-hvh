@@ -28,8 +28,8 @@ body {
   font-family: Inter, system-ui, sans-serif;
   color: var(--text);
   background:
-    linear-gradient(180deg, rgba(20, 30, 38, 0.4), rgba(14, 18, 24, 0.75)),
-    url('/jdm-bg.svg') center center / cover no-repeat fixed;
+    linear-gradient(180deg, rgba(18, 24, 34, 0.42), rgba(10, 14, 22, 0.8)),
+    url('/killua-inspired-bg.svg') center center / cover no-repeat fixed;
   overflow-x: hidden;
 }
 
@@ -38,9 +38,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at 15% 20%, rgba(150, 220, 255, 0.28), transparent 20%),
-    radial-gradient(circle at 80% 15%, rgba(130, 255, 200, 0.18), transparent 20%),
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+    radial-gradient(circle at 14% 16%, rgba(122, 221, 255, 0.22), transparent 22%),
+    radial-gradient(circle at 76% 20%, rgba(105, 159, 255, 0.18), transparent 18%),
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0));
   pointer-events: none;
 }
 
@@ -105,7 +105,7 @@ body::before {
   height: 90px;
   right: -12%;
   bottom: 28%;
-  background: radial-gradient(circle, rgba(255, 107, 135, 0.24), rgba(255, 107, 135, 0.02) 72%);
+  background: radial-gradient(circle, rgba(116, 170, 255, 0.24), rgba(116, 170, 255, 0.02) 72%);
   animation: driveByReverse 19s linear infinite;
 }
 

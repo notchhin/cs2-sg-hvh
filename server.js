@@ -317,7 +317,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (url.pathname === '/jdm-bg.svg' || url.pathname === '/mirage-map.svg' || url.pathname === '/flag-sg.svg') {
+  if (url.pathname === '/jdm-bg.svg' || url.pathname === '/mirage-map.svg' || url.pathname === '/flag-sg.svg' || url.pathname === '/killua-inspired-bg.svg') {
     serveFile(res, path.join(publicDir, path.basename(url.pathname)), 'image/svg+xml');
     return;
   }
