@@ -3,34 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CS2 Singapore Server Tracker</title>
+    <title>Midnight Sakura Server Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="wrap">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Realtime tracker</p>
-          <h1>CS2 Singapore server tracker</h1>
-          <p class="sub">Refreshing every 10 seconds. The site prefers direct server queries for live player counts and names, then falls back to the public hvh.wtf feed if direct queries fail.</p>
-        </div>
-        <button id="refreshBtn">Refresh now</button>
-      </header>
+    <div class="bg-art bg-art-left"></div>
+    <div class="bg-art bg-art-right"></div>
 
-      <section class="meta">
-        <div class="meta-card">
-          <span class="label">Last refresh</span>
-          <strong id="refreshedAt">Waiting...</strong>
-        </div>
-        <div class="meta-card">
-          <span class="label">Players online</span>
-          <strong id="playersOnline">0</strong>
-        </div>
-        <div class="meta-card">
-          <span class="label">Tracked servers</span>
-          <strong id="trackedCount">3</strong>
-        </div>
-      </section>
+    <main class="wrap">
+      <header class="hero-shell">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">MIDNIGHT SAKURA // SG TRACKER</p>
+            <h1>Tokyo street glow for your CS2 server watchlist.</h1>
+            <p class="sub">Refreshing every 10 seconds. The site prefers direct server queries for live player counts and names, then falls back to the public hvh.wtf feed if direct queries fail.</p>
+
+            <div class="hero-actions">
+              <button id="refreshBtn">Refresh now</button>
+              <span class="hero-chip">Sakura mode</span>
+              <span class="hero-chip">Direct live query</span>
+            </div>
+          </div>
+
+          <div class="hero-car-card">
+            <div class="sun"></div>
+            <div class="car-line"></div>
+            <div class="car-body"></div>
+            <div class="wheel wheel-left"></div>
+            <div class="wheel wheel-right"></div>
+            <div class="sakura sakura-1">✿</div>
+            <div class="sakura sakura-2">✿</div>
+            <div class="sakura sakura-3">✿</div>
+          </div>
+        </section>
+
+        <section class="meta">
+          <div class="meta-card accent-pink">
+            <span class="label">Last refresh</span>
+            <strong id="refreshedAt">Waiting...</strong>
+          </div>
+          <div class="meta-card accent-blue">
+            <span class="label">Players online</span>
+            <strong id="playersOnline">0</strong>
+          </div>
+          <div class="meta-card accent-gold">
+            <span class="label">Tracked servers</span>
+            <strong id="trackedCount">3</strong>
+          </div>
+        </section>
+      </header>
 
       <section id="status" class="status">Loading server data...</section>
       <section id="serverGrid" class="grid"></section>
@@ -54,7 +78,7 @@
       }
 
       async function loadServers() {
-        statusEl.textContent = 'Refreshing...';
+        statusEl.textContent = 'Refreshing neon telemetry...';
         try {
           const response = await fetch('/api/servers', { cache: 'no-store' });
           if (!response.ok) {
@@ -77,7 +101,7 @@
         playersOnlineEl.textContent = totalPlayers;
 
         gridEl.innerHTML = '';
-        data.servers.forEach((server) => {
+        data.servers.forEach((server, index) => {
           const card = document.createElement('article');
           card.className = 'card';
           const occupancy = server.maxPlayers ? `${server.playersNow}/${server.maxPlayers}` : 'Unknown';
@@ -93,21 +117,22 @@
             : `<p class="empty-players">${server.liveQueryOk ? 'No players in server right now.' : 'Direct player query unavailable right now.'}</p>`;
 
           card.innerHTML = `
+            <div class="card-glow card-glow-${(index % 3) + 1}"></div>
             <div class="card-top">
               <span class="pill ${onlineClass}">${server.online ? 'Online' : 'Offline'}</span>
               <span class="address">${escapeHtml(server.address)}</span>
             </div>
             <h2>${escapeHtml(server.name)}</h2>
             <div class="stats">
-              <div>
+              <div class="stat-box">
                 <span class="label">Players</span>
                 <strong>${occupancy}</strong>
               </div>
-              <div>
+              <div class="stat-box">
                 <span class="label">Map</span>
                 <strong>${escapeHtml(server.map || 'Unknown')}</strong>
               </div>
-              <div>
+              <div class="stat-box">
                 <span class="label">Region</span>
                 <strong>${escapeHtml(server.country || server.region || 'Unknown')}</strong>
               </div>
