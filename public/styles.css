@@ -460,10 +460,11 @@ button {
 }
 
 .flag-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
   display: block;
+  object-fit: cover;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
 }
 
