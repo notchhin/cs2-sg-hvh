@@ -6,8 +6,10 @@ const { URL } = require('url');
 
 const PORT = process.env.PORT || 8787;
 const QUERY_TIMEOUT_MS = 4000;
+const VISITOR_TTL_MS = 45_000;
 
 const publicDir = path.join(__dirname, 'public');
+const activeVisitors = new Map();
 
 function sendJson(res, status, data) {
   res.writeHead(status, {
@@ -75,6 +77,24 @@ function sendUdpMessage(host, port, message) {
       }
     });
   });
+}
+
+function pruneVisitors() {
+  const now = Date.now();
+  for (const [visitorId, timestamp] of activeVisitors.entries()) {
+    if (now - timestamp > VISITOR_TTL_MS) {
+      activeVisitors.delete(visitorId);
+    }
+  }
+  return activeVisitors.size;
+}
+
+function touchVisitor(visitorId) {
+  if (!visitorId) {
+    return pruneVisitors();
+  }
+  activeVisitors.set(visitorId, Date.now());
+  return pruneVisitors();
 }
 
 async function queryA2SInfo(host, port, challenge = null) {
@@ -329,12 +349,20 @@ async function fetchServers() {
     source: 'https://hvh.wtf/api/servers',
     refreshedAt: new Date().toISOString(),
     totalTracked: filtered.length,
+    activeVisitors: pruneVisitors(),
     servers: filtered
   };
 }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname === '/api/presence') {
+    const visitorId = url.searchParams.get('id');
+    const count = touchVisitor(visitorId);
+    sendJson(res, 200, { ok: true, activeVisitors: count });
+    return;
+  }
 
   if (url.pathname === '/api/servers') {
     try {

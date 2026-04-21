@@ -75,6 +75,10 @@
               <strong id="playersOnline">0</strong>
             </div>
             <div class="mini-stat">
+              <span class="label">Visitors now</span>
+              <strong id="visitorCount">0</strong>
+            </div>
+            <div class="mini-stat">
               <span class="label">Tracked servers</span>
               <strong id="trackedCount">3</strong>
             </div>
@@ -93,6 +97,7 @@
       const refreshedAtEl = document.getElementById('refreshedAt');
       const playersOnlineEl = document.getElementById('playersOnline');
       const trackedCountEl = document.getElementById('trackedCount');
+      const visitorCountEl = document.getElementById('visitorCount');
 
       const blobA = document.querySelector('.cursor-blob-a');
       const blobB = document.querySelector('.cursor-blob-b');
@@ -126,6 +131,14 @@
           .join('');
       }
 
+      const visitorId = (() => {
+        const existing = localStorage.getItem('hvh-visitor-id');
+        if (existing) return existing;
+        const created = `visitor-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+        localStorage.setItem('hvh-visitor-id', created);
+        return created;
+      })();
+
       let mouseX = window.innerWidth / 2;
       let mouseY = window.innerHeight / 2;
       let aX = mouseX, aY = mouseY;
@@ -158,6 +171,19 @@
 
       animateCursor();
 
+      async function sendPresence() {
+        try {
+          const response = await fetch(`/api/presence?id=${encodeURIComponent(visitorId)}`, { cache: 'no-store' });
+          if (!response.ok) return;
+          const data = await response.json();
+          if (typeof data.activeVisitors === 'number') {
+            visitorCountEl.textContent = data.activeVisitors;
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
       async function loadServers() {
         statusEl.textContent = 'Refreshing live data...';
         try {
@@ -176,6 +202,9 @@
         refreshedAtEl.textContent = new Date(data.refreshedAt).toLocaleString();
         trackedCountEl.textContent = data.totalTracked;
         playersOnlineEl.textContent = data.servers.reduce((sum, server) => sum + (server.playersNow || 0), 0);
+        if (typeof data.activeVisitors === 'number') {
+          visitorCountEl.textContent = data.activeVisitors;
+        }
 
         gridEl.innerHTML = '';
         data.servers.forEach((server) => {
@@ -266,7 +295,9 @@
       }
 
       refreshBtn.addEventListener('click', loadServers);
+      sendPresence();
       loadServers();
+      setInterval(sendPresence, 15000);
       setInterval(loadServers, 10000);
     </script>
   </body>
