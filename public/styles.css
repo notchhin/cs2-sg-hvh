@@ -418,10 +418,14 @@ button {
 }
 
 .card h2 {
-  margin: 14px 0;
+  margin: 14px 0 18px;
   font-size: 0.88rem;
   line-height: 1.45;
   letter-spacing: -0.01em;
+}
+
+.stats {
+  margin-bottom: 18px;
 }
 
 .stat-box {
@@ -518,6 +522,10 @@ button {
 .copy-btn {
   background: linear-gradient(180deg, rgba(105, 255, 167, 0.24), rgba(105, 255, 167, 0.12));
   color: #e7fff2;
+}
+
+.card-actions {
+  margin-top: 8px;
 }
 
 .players-panel {
