@@ -44,6 +44,117 @@ body::before {
   pointer-events: none;
 }
 
+.live-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wallpaper-lane,
+.wallpaper-glow,
+.wallpaper-grid {
+  position: absolute;
+}
+
+.wallpaper-lane {
+  inset: auto -10% -4% -10%;
+  height: 44%;
+  transform-origin: center;
+  background: linear-gradient(180deg, transparent 0%, rgba(7, 12, 18, 0.12) 20%, rgba(7, 12, 18, 0.5) 100%);
+  clip-path: polygon(0 100%, 18% 55%, 50% 40%, 82% 55%, 100% 100%);
+  opacity: 0.55;
+}
+
+.lane-1 {
+  animation: lanePulse 14s ease-in-out infinite;
+}
+
+.lane-2 {
+  inset: auto -18% -10% 18%;
+  opacity: 0.26;
+  transform: skewX(-18deg);
+  animation: laneDrift 18s linear infinite;
+}
+
+.lane-3 {
+  inset: auto 22% -8% -20%;
+  opacity: 0.2;
+  transform: skewX(18deg);
+  animation: laneDriftReverse 22s linear infinite;
+}
+
+.wallpaper-glow {
+  border-radius: 999px;
+  filter: blur(50px);
+  mix-blend-mode: screen;
+}
+
+.glow-1 {
+  width: 360px;
+  height: 120px;
+  left: -8%;
+  bottom: 18%;
+  background: radial-gradient(circle, rgba(123, 196, 255, 0.28), rgba(123, 196, 255, 0.02) 72%);
+  animation: driveBy 16s linear infinite;
+}
+
+.glow-2 {
+  width: 280px;
+  height: 90px;
+  right: -12%;
+  bottom: 28%;
+  background: radial-gradient(circle, rgba(255, 107, 135, 0.24), rgba(255, 107, 135, 0.02) 72%);
+  animation: driveByReverse 19s linear infinite;
+}
+
+.wallpaper-grid {
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.12;
+  transform: perspective(800px) rotateX(72deg) translateY(34%);
+  transform-origin: bottom center;
+  animation: gridScroll 12s linear infinite;
+}
+
+@keyframes driveBy {
+  0% { transform: translateX(-8%) translateY(0) scale(0.9); opacity: 0; }
+  10% { opacity: 0.18; }
+  45% { opacity: 0.32; }
+  100% { transform: translateX(125vw) translateY(-16px) scale(1.2); opacity: 0; }
+}
+
+@keyframes driveByReverse {
+  0% { transform: translateX(10%) translateY(0) scale(0.85); opacity: 0; }
+  10% { opacity: 0.12; }
+  45% { opacity: 0.24; }
+  100% { transform: translateX(-125vw) translateY(18px) scale(1.15); opacity: 0; }
+}
+
+@keyframes gridScroll {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 120px, 0 0; }
+}
+
+@keyframes lanePulse {
+  0%, 100% { transform: translateY(0) scaleX(1); opacity: 0.5; }
+  50% { transform: translateY(-8px) scaleX(1.02); opacity: 0.68; }
+}
+
+@keyframes laneDrift {
+  0% { transform: skewX(-18deg) translateX(0); }
+  100% { transform: skewX(-18deg) translateX(40px); }
+}
+
+@keyframes laneDriftReverse {
+  0% { transform: skewX(18deg) translateX(0); }
+  100% { transform: skewX(18deg) translateX(-42px); }
+}
+
 .goo-defs {
   position: absolute;
 }
@@ -433,6 +544,15 @@ button {
 
   .hero-shell {
     min-height: unset;
+  }
+
+  .wallpaper-grid {
+    opacity: 0.08;
+  }
+
+  .glow-1,
+  .glow-2 {
+    filter: blur(36px);
   }
 
   button,
