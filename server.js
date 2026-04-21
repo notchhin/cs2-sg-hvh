@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const dgram = require('dgram');
 const { URL } = require('url');
 
 const PORT = process.env.PORT || 8787;
@@ -9,6 +10,7 @@ const TARGETS = [
   '103.216.223.85:7023',
   '139.99.62.233:27017'
 ];
+const QUERY_TIMEOUT_MS = 4000;
 
 const publicDir = path.join(__dirname, 'public');
 
@@ -31,6 +33,192 @@ function serveFile(res, filePath, contentType = 'text/html; charset=utf-8') {
   });
 }
 
+function readNullTerminatedString(buffer, offset) {
+  const end = buffer.indexOf(0x00, offset);
+  if (end === -1) {
+    return { value: '', nextOffset: buffer.length };
+  }
+  return {
+    value: buffer.toString('utf8', offset, end),
+    nextOffset: end + 1
+  };
+}
+
+function parseAddress(address) {
+  const [host, portRaw] = address.split(':');
+  return {
+    host,
+    port: Number(portRaw)
+  };
+}
+
+function sendUdpMessage(host, port, message) {
+  return new Promise((resolve, reject) => {
+    const socket = dgram.createSocket('udp4');
+    const timeout = setTimeout(() => {
+      socket.close();
+      reject(new Error('UDP query timed out'));
+    }, QUERY_TIMEOUT_MS);
+
+    socket.once('error', (error) => {
+      clearTimeout(timeout);
+      socket.close();
+      reject(error);
+    });
+
+    socket.once('message', (buffer) => {
+      clearTimeout(timeout);
+      socket.close();
+      resolve(buffer);
+    });
+
+    socket.send(message, port, host, (error) => {
+      if (error) {
+        clearTimeout(timeout);
+        socket.close();
+        reject(error);
+      }
+    });
+  });
+}
+
+async function queryA2SInfo(host, port, challenge = null) {
+  const basePayload = Buffer.concat([
+    Buffer.from([0xff, 0xff, 0xff, 0xff, 0x54]),
+    Buffer.from('Source Engine Query\0', 'ascii')
+  ]);
+  const payload = challenge === null
+    ? basePayload
+    : Buffer.concat([basePayload, challenge]);
+
+  const buffer = await sendUdpMessage(host, port, payload);
+  if (buffer.readInt32LE(0) !== -1) {
+    throw new Error('Unexpected A2S_INFO header');
+  }
+
+  if (buffer[4] === 0x41) {
+    const nextChallenge = buffer.subarray(5, 9);
+    return queryA2SInfo(host, port, nextChallenge);
+  }
+
+  if (buffer[4] !== 0x49) {
+    throw new Error('Unexpected A2S_INFO response');
+  }
+
+  let offset = 6;
+  const name = readNullTerminatedString(buffer, offset);
+  offset = name.nextOffset;
+  const map = readNullTerminatedString(buffer, offset);
+  offset = map.nextOffset;
+  const folder = readNullTerminatedString(buffer, offset);
+  offset = folder.nextOffset;
+  const game = readNullTerminatedString(buffer, offset);
+  offset = game.nextOffset;
+
+  const appId = buffer.readUInt16LE(offset);
+  offset += 2;
+  const players = buffer.readUInt8(offset++);
+  const maxPlayers = buffer.readUInt8(offset++);
+  const bots = buffer.readUInt8(offset++);
+  const serverType = String.fromCharCode(buffer.readUInt8(offset++));
+  const environment = String.fromCharCode(buffer.readUInt8(offset++));
+  const visibility = buffer.readUInt8(offset++);
+  const vac = buffer.readUInt8(offset++);
+  const version = readNullTerminatedString(buffer, offset);
+
+  return {
+    name: name.value,
+    map: map.value,
+    folder: folder.value,
+    game: game.value,
+    appId,
+    players,
+    maxPlayers,
+    bots,
+    serverType,
+    environment,
+    visibility,
+    vac,
+    version: version.value
+  };
+}
+
+async function queryA2SPlayers(host, port, challenge = -1) {
+  const payload = Buffer.alloc(9);
+  payload.writeInt32LE(-1, 0);
+  payload.writeUInt8(0x55, 4);
+  payload.writeInt32LE(challenge, 5);
+
+  const buffer = await sendUdpMessage(host, port, payload);
+  const header = buffer.readInt32LE(0);
+  const type = buffer.readUInt8(4);
+
+  if (header !== -1) {
+    throw new Error('Unexpected A2S_PLAYER header');
+  }
+
+  if (type === 0x41) {
+    const nextChallenge = buffer.readInt32LE(5);
+    return queryA2SPlayers(host, port, nextChallenge);
+  }
+
+  if (type !== 0x44) {
+    throw new Error('Unexpected A2S_PLAYER response');
+  }
+
+  let offset = 5;
+  const count = buffer.readUInt8(offset++);
+  const players = [];
+
+  for (let i = 0; i < count && offset < buffer.length; i += 1) {
+    offset += 1;
+    const name = readNullTerminatedString(buffer, offset);
+    offset = name.nextOffset;
+
+    if (offset + 8 > buffer.length) {
+      break;
+    }
+
+    const score = buffer.readInt32LE(offset);
+    offset += 4;
+    const durationSeconds = buffer.readFloatLE(offset);
+    offset += 4;
+
+    players.push({
+      name: name.value || '(unnamed player)',
+      score,
+      durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : 0
+    });
+  }
+
+  return players;
+}
+
+async function queryServerDirect(address) {
+  const { host, port } = parseAddress(address);
+
+  try {
+    const [info, players] = await Promise.all([
+      queryA2SInfo(host, port),
+      queryA2SPlayers(host, port).catch(() => [])
+    ]);
+
+    return {
+      ok: true,
+      source: 'direct-a2s',
+      info,
+      players
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      source: 'direct-a2s',
+      error: error.message,
+      players: []
+    };
+  }
+}
+
 async function fetchServers() {
   const response = await fetch('https://hvh.wtf/api/servers', {
     headers: {
@@ -43,9 +231,13 @@ async function fetchServers() {
   }
 
   const servers = await response.json();
-  const filtered = TARGETS.map((address) => {
+  const directResults = await Promise.all(TARGETS.map((address) => queryServerDirect(address)));
+
+  const filtered = TARGETS.map((address, index) => {
     const server = servers.find((entry) => entry.address === address);
-    if (!server) {
+    const direct = directResults[index];
+
+    if (!server && !direct.ok) {
       return {
         address,
         found: false,
@@ -53,25 +245,40 @@ async function fetchServers() {
         playersNow: null,
         maxPlayers: null,
         map: null,
-        name: 'Unknown server'
+        name: 'Unknown server',
+        livePlayerNames: [],
+        liveDataSource: 'unavailable',
+        liveQueryOk: false,
+        liveQueryError: direct.error || 'No data available'
       };
     }
 
-    const [playersNow, maxPlayers] = Array.isArray(server.players) ? server.players : [null, null];
+    const [feedPlayersNow, feedMaxPlayers] = server && Array.isArray(server.players)
+      ? server.players
+      : [null, null];
+
+    const playersNow = direct.ok ? direct.info.players : feedPlayersNow;
+    const maxPlayers = direct.ok ? direct.info.maxPlayers : feedMaxPlayers;
+    const map = direct.ok ? direct.info.map : (server?.map || null);
+    const name = direct.ok ? direct.info.name : (server?.name || address);
 
     return {
-      address: server.address,
-      found: true,
-      online: Boolean(server.online),
+      address: server?.address || address,
+      found: Boolean(server || direct.ok),
+      online: direct.ok ? true : Boolean(server?.online),
       playersNow,
       maxPlayers,
-      map: server.map || null,
-      name: server.name || server.address,
-      country: server.country?.name || null,
-      region: server.region?.name || null,
-      tags: server.tags || [],
-      provider: server.provider || null,
-      updatedAt: new Date().toISOString()
+      map,
+      name,
+      country: server?.country?.name || null,
+      region: server?.region?.name || null,
+      tags: server?.tags || [],
+      provider: server?.provider || null,
+      updatedAt: new Date().toISOString(),
+      livePlayerNames: direct.players,
+      liveDataSource: direct.ok ? 'direct-a2s' : 'hvh.wtf-feed',
+      liveQueryOk: direct.ok,
+      liveQueryError: direct.ok ? null : direct.error
     };
   });
 

@@ -8,6 +8,7 @@
   --green: #22c55e;
   --red: #ef4444;
   --accent: #60a5fa;
+  --yellow: #fbbf24;
 }
 
 * {
@@ -52,7 +53,9 @@ h1 {
 .label,
 .tags,
 .address,
-.status {
+.status,
+.empty-players,
+.player-meta {
   color: var(--muted);
 }
 
@@ -101,7 +104,10 @@ button {
 }
 
 .card-top,
-.stats {
+.stats,
+.card-actions,
+.players-header,
+.player-list li {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -117,7 +123,8 @@ button {
   min-width: 90px;
 }
 
-.pill {
+.pill,
+.source-badge {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
@@ -136,10 +143,51 @@ button {
   color: #fca5a5;
 }
 
-.card-actions {
+.source-direct {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.source-feed {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fde68a;
+}
+
+.card-actions,
+.players-panel {
   margin-top: 14px;
 }
 
+.players-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(167, 177, 209, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.player-list li {
+  padding: 8px 0;
+  border-top: 1px solid rgba(167, 177, 209, 0.08);
+}
+
+.player-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.player-name {
+  font-weight: 600;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.empty-players,
 .tags {
   margin: 14px 0 0;
   line-height: 1.5;
@@ -154,5 +202,10 @@ button {
 
   button {
     width: 100%;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

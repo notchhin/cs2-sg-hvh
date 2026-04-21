@@ -12,7 +12,7 @@
         <div>
           <p class="eyebrow">Realtime tracker</p>
           <h1>CS2 Singapore server tracker</h1>
-          <p class="sub">Polling every 10 seconds from the public hvh.wtf server list. Player counts come from that feed, so they are near realtime, not direct server queries.</p>
+          <p class="sub">Refreshing every 10 seconds. The site prefers direct server queries for live player counts and names, then falls back to the public hvh.wtf feed if direct queries fail.</p>
         </div>
         <button id="refreshBtn">Refresh now</button>
       </header>
@@ -44,6 +44,15 @@
       const playersOnlineEl = document.getElementById('playersOnline');
       const trackedCountEl = document.getElementById('trackedCount');
 
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
       async function loadServers() {
         statusEl.textContent = 'Refreshing...';
         try {
@@ -73,12 +82,22 @@
           card.className = 'card';
           const occupancy = server.maxPlayers ? `${server.playersNow}/${server.maxPlayers}` : 'Unknown';
           const onlineClass = server.online ? 'online' : 'offline';
+          const sourceClass = server.liveQueryOk ? 'source-direct' : 'source-feed';
+          const playerList = (server.livePlayerNames || []).length
+            ? `<ul class="player-list">${server.livePlayerNames.map((player) => `
+                <li>
+                  <span class="player-name">${escapeHtml(player.name || '(unnamed player)')}</span>
+                  <span class="player-meta">${Math.round(player.durationSeconds || 0)}s</span>
+                </li>
+              `).join('')}</ul>`
+            : `<p class="empty-players">${server.liveQueryOk ? 'No players in server right now.' : 'Direct player query unavailable right now.'}</p>`;
+
           card.innerHTML = `
             <div class="card-top">
               <span class="pill ${onlineClass}">${server.online ? 'Online' : 'Offline'}</span>
-              <span class="address">${server.address}</span>
+              <span class="address">${escapeHtml(server.address)}</span>
             </div>
-            <h2>${server.name}</h2>
+            <h2>${escapeHtml(server.name)}</h2>
             <div class="stats">
               <div>
                 <span class="label">Players</span>
@@ -86,17 +105,25 @@
               </div>
               <div>
                 <span class="label">Map</span>
-                <strong>${server.map || 'Unknown'}</strong>
+                <strong>${escapeHtml(server.map || 'Unknown')}</strong>
               </div>
               <div>
                 <span class="label">Region</span>
-                <strong>${server.country || server.region || 'Unknown'}</strong>
+                <strong>${escapeHtml(server.country || server.region || 'Unknown')}</strong>
               </div>
             </div>
             <div class="card-actions">
-              <button class="copy-btn" data-address="${server.address}">Copy IP</button>
+              <button class="copy-btn" data-address="${escapeHtml(server.address)}">Copy IP</button>
+              <span class="source-badge ${sourceClass}">${server.liveQueryOk ? 'Direct live query' : 'Feed fallback'}</span>
             </div>
-            <p class="tags">${(server.tags || []).join(' · ') || 'No tags'}</p>
+            <div class="players-panel">
+              <div class="players-header">
+                <span class="label">Live player names</span>
+                <strong>${server.livePlayerNames?.length || 0}</strong>
+              </div>
+              ${playerList}
+            </div>
+            <p class="tags">${(server.tags || []).map(escapeHtml).join(' · ') || 'No tags'}</p>
           `;
 
           const copyBtn = card.querySelector('.copy-btn');
