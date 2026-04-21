@@ -218,7 +218,10 @@
               </div>
             </div>
             <div class="card-actions">
-              <button class="copy-btn" data-address="${escapeHtml(server.address)}">Copy IP</button>
+              <div class="button-row">
+                <button class="connect-btn" data-address="${escapeHtml(server.address)}">Connect</button>
+                <button class="copy-btn" data-address="${escapeHtml(server.address)}">Copy IP</button>
+              </div>
               <span class="source-badge ${sourceClass}">${server.liveQueryOk ? 'Direct live query' : 'Feed fallback'}</span>
             </div>
             <div class="players-panel">
@@ -230,6 +233,11 @@
             </div>
             <p class="tags">${(server.tags || []).map(escapeHtml).join(' · ') || 'No tags'}</p>
           `;
+
+          const connectBtn = card.querySelector('.connect-btn');
+          connectBtn.addEventListener('click', () => {
+            window.location.href = `steam://connect/${server.address}`;
+          });
 
           const copyBtn = card.querySelector('.copy-btn');
           copyBtn.addEventListener('click', async () => {
