@@ -12,8 +12,8 @@
   <body>
     <svg class="goo-defs" width="0" height="0" aria-hidden="true">
       <filter id="liquid-goo">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -8" result="goo" />
+        <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -8" result="goo" />
         <feBlend in="SourceGraphic" in2="goo" />
       </filter>
     </svg>
@@ -21,6 +21,8 @@
     <div class="cursor-layer">
       <div class="cursor-blob cursor-blob-a"></div>
       <div class="cursor-blob cursor-blob-b"></div>
+      <div class="cursor-blob cursor-blob-c"></div>
+      <div class="cursor-blob cursor-blob-d"></div>
       <div class="cursor-core"></div>
     </div>
 
@@ -83,10 +85,15 @@
       const playersOnlineEl = document.getElementById('playersOnline');
       const trackedCountEl = document.getElementById('trackedCount');
 
-      const cursorLayer = document.querySelector('.cursor-layer');
       const blobA = document.querySelector('.cursor-blob-a');
       const blobB = document.querySelector('.cursor-blob-b');
+      const blobC = document.querySelector('.cursor-blob-c');
+      const blobD = document.querySelector('.cursor-blob-d');
       const cursorCore = document.querySelector('.cursor-core');
+
+      const mapArt = {
+        de_mirage: '/mirage-map.svg'
+      };
 
       function escapeHtml(value) {
         return String(value)
@@ -97,21 +104,36 @@
           .replaceAll("'", '&#39;');
       }
 
+      function flagEmoji(countryCode) {
+        if (!countryCode || countryCode.length !== 2) return '🌍';
+        return countryCode
+          .toUpperCase()
+          .split('')
+          .map((char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
+          .join('');
+      }
+
       let mouseX = window.innerWidth / 2;
       let mouseY = window.innerHeight / 2;
-      let blobAX = mouseX;
-      let blobAY = mouseY;
-      let blobBX = mouseX;
-      let blobBY = mouseY;
+      let aX = mouseX, aY = mouseY;
+      let bX = mouseX, bY = mouseY;
+      let cX = mouseX, cY = mouseY;
+      let dX = mouseX, dY = mouseY;
 
       function animateCursor() {
-        blobAX += (mouseX - blobAX) * 0.18;
-        blobAY += (mouseY - blobAY) * 0.18;
-        blobBX += (mouseX - blobBX) * 0.1;
-        blobBY += (mouseY - blobBY) * 0.1;
+        aX += (mouseX - aX) * 0.24;
+        aY += (mouseY - aY) * 0.24;
+        bX += (mouseX - bX) * 0.14;
+        bY += (mouseY - bY) * 0.14;
+        cX += (mouseX - cX) * 0.085;
+        cY += (mouseY - cY) * 0.085;
+        dX += (mouseX - dX) * 0.05;
+        dY += (mouseY - dY) * 0.05;
 
-        blobA.style.transform = `translate(${blobAX - 70}px, ${blobAY - 70}px)`;
-        blobB.style.transform = `translate(${blobBX - 42}px, ${blobBY - 42}px)`;
+        blobA.style.transform = `translate(${aX - 82}px, ${aY - 82}px)`;
+        blobB.style.transform = `translate(${bX - 56}px, ${bY - 56}px)`;
+        blobC.style.transform = `translate(${cX - 38}px, ${cY - 38}px)`;
+        blobD.style.transform = `translate(${dX - 24}px, ${dY - 24}px)`;
         cursorCore.style.transform = `translate(${mouseX - 8}px, ${mouseY - 8}px)`;
         requestAnimationFrame(animateCursor);
       }
@@ -149,6 +171,10 @@
           const occupancy = server.maxPlayers ? `${server.playersNow}/${server.maxPlayers}` : 'Unknown';
           const onlineClass = server.online ? 'online' : 'offline';
           const sourceClass = server.liveQueryOk ? 'source-direct' : 'source-feed';
+          const mapName = server.map || 'Unknown';
+          const mapImage = mapArt[mapName] || mapArt.de_mirage;
+          const flag = flagEmoji(server.countryCode);
+          const regionLabel = server.country || server.region || 'Unknown';
           const playerList = (server.livePlayerNames || []).length
             ? `<ul class="player-list">${server.livePlayerNames.map((player) => `
                 <li>
@@ -165,17 +191,18 @@
             </div>
             <h2>${escapeHtml(server.name)}</h2>
             <div class="stats">
-              <div class="stat-box">
+              <div class="stat-box compact-stat">
                 <span class="label">Players</span>
                 <strong>${occupancy}</strong>
               </div>
-              <div class="stat-box">
+              <div class="stat-box map-stat">
                 <span class="label">Map</span>
-                <strong>${escapeHtml(server.map || 'Unknown')}</strong>
+                <div class="map-thumb" style="background-image:url('${mapImage}')"></div>
+                <strong>${escapeHtml(mapName)}</strong>
               </div>
-              <div class="stat-box">
+              <div class="stat-box compact-stat">
                 <span class="label">Region</span>
-                <strong>${escapeHtml(server.country || server.region || 'Unknown')}</strong>
+                <strong class="flag-row"><span class="flag">${flag}</span>${escapeHtml(regionLabel)}</strong>
               </div>
             </div>
             <div class="card-actions">

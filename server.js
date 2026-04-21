@@ -271,6 +271,7 @@ async function fetchServers() {
       map,
       name,
       country: server?.country?.name || null,
+      countryCode: server?.country?.code || null,
       region: server?.region?.name || null,
       tags: server?.tags || [],
       provider: server?.provider || null,
