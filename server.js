@@ -5,11 +5,6 @@ const dgram = require('dgram');
 const { URL } = require('url');
 
 const PORT = process.env.PORT || 8787;
-const TARGETS = [
-  '139.99.62.233:27015',
-  '103.216.223.85:7023',
-  '139.99.62.233:27017'
-];
 const QUERY_TIMEOUT_MS = 4000;
 
 const publicDir = path.join(__dirname, 'public');
@@ -219,6 +214,29 @@ async function queryServerDirect(address) {
   }
 }
 
+function discoverSingaporeServers(servers) {
+  return servers
+    .filter((server) => {
+      const countryCode = server?.country?.code;
+      const regionCode = server?.region?.code;
+      const name = String(server?.name || '').toLowerCase();
+      const provider = String(server?.provider || '').toLowerCase();
+      const tags = Array.isArray(server?.tags) ? server.tags.map((tag) => String(tag).toLowerCase()) : [];
+      const isSingapore = countryCode === 'SG' || name.includes('[sg]') || name.includes('singapore') || provider.includes('singapore');
+      const isAsia = regionCode === 'AS' || countryCode === 'SG';
+      const isCs2 = server?.version_type === 'cs2' || tags.includes('cs2');
+      return isSingapore && isAsia && isCs2 && server?.address;
+    })
+    .sort((a, b) => {
+      const aPlayers = Array.isArray(a.players) ? a.players[0] || 0 : 0;
+      const bPlayers = Array.isArray(b.players) ? b.players[0] || 0 : 0;
+      if (bPlayers !== aPlayers) {
+        return bPlayers - aPlayers;
+      }
+      return String(a.address).localeCompare(String(b.address));
+    });
+}
+
 async function fetchServers() {
   const response = await fetch('https://hvh.wtf/api/servers', {
     headers: {
@@ -231,10 +249,12 @@ async function fetchServers() {
   }
 
   const servers = await response.json();
-  const directResults = await Promise.all(TARGETS.map((address) => queryServerDirect(address)));
+  const singaporeServers = discoverSingaporeServers(servers);
+  const targetAddresses = singaporeServers.map((server) => server.address);
+  const directResults = await Promise.all(targetAddresses.map((address) => queryServerDirect(address)));
 
-  const filtered = TARGETS.map((address, index) => {
-    const server = servers.find((entry) => entry.address === address);
+  const filtered = targetAddresses.map((address, index) => {
+    const server = singaporeServers.find((entry) => entry.address === address);
     const direct = directResults[index];
 
     if (!server && !direct.ok) {
