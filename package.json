@@ -1,0 +1,9 @@
+{
+  "name": "hvh-sg-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tiny realtime tracker for selected HVH CS2 servers",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

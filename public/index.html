@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS2 Singapore Server Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Realtime tracker</p>
+          <h1>CS2 Singapore server tracker</h1>
+          <p class="sub">Polling every 10 seconds from the public hvh.wtf server list.</p>
+        </div>
+        <button id="refreshBtn">Refresh now</button>
+      </header>
+
+      <section class="meta">
+        <div class="meta-card">
+          <span class="label">Last refresh</span>
+          <strong id="refreshedAt">Waiting...</strong>
+        </div>
+        <div class="meta-card">
+          <span class="label">Players online</span>
+          <strong id="playersOnline">0</strong>
+        </div>
+        <div class="meta-card">
+          <span class="label">Tracked servers</span>
+          <strong id="trackedCount">3</strong>
+        </div>
+      </section>
+
+      <section id="status" class="status">Loading server data...</section>
+      <section id="serverGrid" class="grid"></section>
+    </main>
+
+    <script>
+      const refreshBtn = document.getElementById('refreshBtn');
+      const statusEl = document.getElementById('status');
+      const gridEl = document.getElementById('serverGrid');
+      const refreshedAtEl = document.getElementById('refreshedAt');
+      const playersOnlineEl = document.getElementById('playersOnline');
+      const trackedCountEl = document.getElementById('trackedCount');
+
+      async function loadServers() {
+        statusEl.textContent = 'Refreshing...';
+        try {
+          const response = await fetch('/api/servers', { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error('Request failed');
+          }
+          const data = await response.json();
+          render(data);
+          statusEl.textContent = 'Live data loaded.';
+        } catch (error) {
+          statusEl.textContent = 'Could not load live data right now.';
+          console.error(error);
+        }
+      }
+
+      function render(data) {
+        refreshedAtEl.textContent = new Date(data.refreshedAt).toLocaleString();
+        trackedCountEl.textContent = data.totalTracked;
+
+        const totalPlayers = data.servers.reduce((sum, server) => sum + (server.playersNow || 0), 0);
+        playersOnlineEl.textContent = totalPlayers;
+
+        gridEl.innerHTML = '';
+        data.servers.forEach((server) => {
+          const card = document.createElement('article');
+          card.className = 'card';
+          const occupancy = server.maxPlayers ? `${server.playersNow}/${server.maxPlayers}` : 'Unknown';
+          const onlineClass = server.online ? 'online' : 'offline';
+          card.innerHTML = `
+            <div class="card-top">
+              <span class="pill ${onlineClass}">${server.online ? 'Online' : 'Offline'}</span>
+              <span class="address">${server.address}</span>
+            </div>
+            <h2>${server.name}</h2>
+            <div class="stats">
+              <div>
+                <span class="label">Players</span>
+                <strong>${occupancy}</strong>
+              </div>
+              <div>
+                <span class="label">Map</span>
+                <strong>${server.map || 'Unknown'}</strong>
+              </div>
+              <div>
+                <span class="label">Region</span>
+                <strong>${server.country || server.region || 'Unknown'}</strong>
+              </div>
+            </div>
+            <p class="tags">${(server.tags || []).join(' · ') || 'No tags'}</p>
+          `;
+          gridEl.appendChild(card);
+        });
+      }
+
+      refreshBtn.addEventListener('click', loadServers);
+      loadServers();
+      setInterval(loadServers, 10000);
+    </script>
+  </body>
+</html>
