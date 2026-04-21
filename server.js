@@ -237,6 +237,22 @@ function discoverSingaporeServers(servers) {
     });
 }
 
+function detectLatestCs2Version(servers) {
+  const counts = new Map();
+
+  for (const server of servers) {
+    const versionType = server?.version_type;
+    const version = String(server?.version || '').trim();
+    if (versionType !== 'cs2' || !version) {
+      continue;
+    }
+    counts.set(version, (counts.get(version) || 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+}
+
 async function fetchServers() {
   const response = await fetch('https://hvh.wtf/api/servers', {
     headers: {
@@ -249,6 +265,7 @@ async function fetchServers() {
   }
 
   const servers = await response.json();
+  const latestCs2Version = detectLatestCs2Version(servers);
   const singaporeServers = discoverSingaporeServers(servers);
   const targetAddresses = singaporeServers.map((server) => server.address);
   const directResults = await Promise.all(targetAddresses.map((address) => queryServerDirect(address)));
@@ -281,6 +298,8 @@ async function fetchServers() {
     const maxPlayers = direct.ok ? direct.info.maxPlayers : feedMaxPlayers;
     const map = direct.ok ? direct.info.map : (server?.map || null);
     const name = direct.ok ? direct.info.name : (server?.name || address);
+    const serverVersion = String(direct.ok ? direct.info.version : (server?.version || '')).trim() || null;
+    const isOutdated = Boolean(serverVersion && latestCs2Version && serverVersion !== latestCs2Version);
 
     return {
       address: server?.address || address,
@@ -295,6 +314,9 @@ async function fetchServers() {
       region: server?.region?.name || null,
       tags: server?.tags || [],
       provider: server?.provider || null,
+      serverVersion,
+      latestCs2Version,
+      isOutdated,
       updatedAt: new Date().toISOString(),
       livePlayerNames: direct.players,
       liveDataSource: direct.ok ? 'direct-a2s' : 'hvh.wtf-feed',

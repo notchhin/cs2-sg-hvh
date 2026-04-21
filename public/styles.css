@@ -294,6 +294,7 @@ button,
 .hero-actions,
 .card-actions,
 .card-top,
+.top-badges,
 .stats,
 .players-header,
 .player-list li {
@@ -473,12 +474,22 @@ button {
 }
 
 .pill.online,
-.source-direct {
+.source-direct,
+.version-current {
   color: var(--green);
 }
 
-.pill.offline {
+.pill.offline,
+.version-outdated {
   color: var(--red);
+}
+
+.version-outdated {
+  background: rgba(255, 107, 135, 0.12);
+}
+
+.version-current {
+  background: rgba(81, 242, 160, 0.1);
 }
 
 .source-feed {
@@ -559,10 +570,15 @@ button {
 }
 
 .empty-players,
-.tags {
+.tags,
+.version-note {
   margin: 14px 0 0;
   line-height: 1.55;
   font-size: 0.9rem;
+}
+
+.version-note {
+  color: rgba(235, 245, 255, 0.62);
 }
 
 @media (max-width: 980px) {

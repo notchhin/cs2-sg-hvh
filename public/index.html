@@ -184,6 +184,8 @@
           const occupancy = server.maxPlayers ? `${server.playersNow}/${server.maxPlayers}` : 'Unknown';
           const onlineClass = server.online ? 'online' : 'offline';
           const sourceClass = server.liveQueryOk ? 'source-direct' : 'source-feed';
+          const versionClass = server.isOutdated ? 'version-outdated' : 'version-current';
+          const versionLabel = server.isOutdated ? 'Outdated' : 'Current';
           const mapName = server.map || 'Unknown';
           const mapImage = mapArt[mapName] || mapArt.de_mirage;
           const flag = flagArt[server.countryCode] || '/flag-sg.svg';
@@ -198,7 +200,10 @@
 
           card.innerHTML = `
             <div class="card-top">
-              <span class="pill ${onlineClass}">${server.online ? 'Online' : 'Offline'}</span>
+              <div class="top-badges">
+                <span class="pill ${onlineClass}">${server.online ? 'Online' : 'Offline'}</span>
+                <span class="pill ${versionClass}">${versionLabel}</span>
+              </div>
               <span class="address">${escapeHtml(server.address)}</span>
             </div>
             <h2>${escapeHtml(server.name)}</h2>
@@ -232,6 +237,7 @@
               ${playerList}
             </div>
             <p class="tags">${(server.tags || []).map(escapeHtml).join(' · ') || 'No tags'}</p>
+            <p class="version-note">Server version: ${escapeHtml(server.serverVersion || 'unknown')} ${server.latestCs2Version ? `· Latest CS2: ${escapeHtml(server.latestCs2Version)}` : ''}</p>
           `;
 
           const connectBtn = card.querySelector('.connect-btn');
