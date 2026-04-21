@@ -317,6 +317,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/jdm-bg.svg' || url.pathname === '/mirage-map.svg') {
+    serveFile(res, path.join(publicDir, path.basename(url.pathname)), 'image/svg+xml');
+    return;
+  }
+
   sendJson(res, 404, { error: 'Not found' });
 });
 

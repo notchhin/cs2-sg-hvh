@@ -174,7 +174,6 @@
           const mapName = server.map || 'Unknown';
           const mapImage = mapArt[mapName] || mapArt.de_mirage;
           const flag = flagEmoji(server.countryCode);
-          const regionLabel = server.country || server.region || 'Unknown';
           const playerList = (server.livePlayerNames || []).length
             ? `<ul class="player-list">${server.livePlayerNames.map((player) => `
                 <li>
@@ -200,9 +199,9 @@
                 <div class="map-thumb" style="background-image:url('${mapImage}')"></div>
                 <strong>${escapeHtml(mapName)}</strong>
               </div>
-              <div class="stat-box compact-stat">
+              <div class="stat-box compact-stat region-stat">
                 <span class="label">Region</span>
-                <strong class="flag-row"><span class="flag">${flag}</span>${escapeHtml(regionLabel)}</strong>
+                <strong class="flag-row"><span class="flag">${flag}</span></strong>
               </div>
             </div>
             <div class="card-actions">
