@@ -317,8 +317,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (url.pathname === '/jdm-bg.svg' || url.pathname === '/mirage-map.svg') {
+  if (url.pathname === '/jdm-bg.svg' || url.pathname === '/mirage-map.svg' || url.pathname === '/flag-sg.svg') {
     serveFile(res, path.join(publicDir, path.basename(url.pathname)), 'image/svg+xml');
+    return;
+  }
+
+  if (url.pathname === '/mirage-map.jpg') {
+    serveFile(res, path.join(publicDir, 'mirage-map.jpg'), 'image/jpeg');
     return;
   }
 

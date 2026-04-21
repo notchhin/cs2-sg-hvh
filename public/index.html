@@ -92,7 +92,11 @@
       const cursorCore = document.querySelector('.cursor-core');
 
       const mapArt = {
-        de_mirage: '/mirage-map.svg'
+        de_mirage: '/mirage-map.jpg'
+      };
+
+      const flagArt = {
+        SG: '/flag-sg.svg'
       };
 
       function escapeHtml(value) {
@@ -173,7 +177,7 @@
           const sourceClass = server.liveQueryOk ? 'source-direct' : 'source-feed';
           const mapName = server.map || 'Unknown';
           const mapImage = mapArt[mapName] || mapArt.de_mirage;
-          const flag = flagEmoji(server.countryCode);
+          const flag = flagArt[server.countryCode] || '/flag-sg.svg';
           const playerList = (server.livePlayerNames || []).length
             ? `<ul class="player-list">${server.livePlayerNames.map((player) => `
                 <li>
@@ -201,7 +205,7 @@
               </div>
               <div class="stat-box compact-stat region-stat">
                 <span class="label">Region</span>
-                <strong class="flag-row"><span class="flag">${flag}</span></strong>
+                <strong class="flag-row"><img class="flag-icon" src="${flag}" alt="${escapeHtml(server.countryCode || 'flag')}" /></strong>
               </div>
             </div>
             <div class="card-actions">

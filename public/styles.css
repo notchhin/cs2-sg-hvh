@@ -348,9 +348,12 @@ button {
   gap: 8px;
 }
 
-.flag {
-  font-size: 1.45rem;
-  line-height: 1;
+.flag-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
 }
 
 .pill.online,
