@@ -10,16 +10,16 @@
     <rect width="64" height="64" fill="#ffffff"/>
     <rect width="64" height="32" fill="#EF3340"/>
 
-    <g transform="translate(32 22)">
-      <circle cx="-8" cy="0" r="9" fill="#ffffff"/>
-      <circle cx="-5.2" cy="0" r="7.2" fill="#EF3340"/>
+    <g transform="translate(35 22)">
+      <circle cx="-9" cy="0" r="9.2" fill="#ffffff"/>
+      <circle cx="-5.9" cy="0" r="7.3" fill="#EF3340"/>
 
       <g fill="#ffffff">
-        <use href="#sg-star" transform="translate(6 -6.5)"/>
-        <use href="#sg-star" transform="translate(11.6 -1.8) scale(0.9)"/>
-        <use href="#sg-star" transform="translate(9.4 5) scale(0.9)"/>
-        <use href="#sg-star" transform="translate(2.7 5) scale(0.9)"/>
-        <use href="#sg-star" transform="translate(0.4 -1.8) scale(0.9)"/>
+        <use href="#sg-star" transform="translate(5.8 -6.5)"/>
+        <use href="#sg-star" transform="translate(11.5 -1.9) scale(0.9)"/>
+        <use href="#sg-star" transform="translate(9.2 4.9) scale(0.9)"/>
+        <use href="#sg-star" transform="translate(2.6 4.9) scale(0.9)"/>
+        <use href="#sg-star" transform="translate(0.3 -1.9) scale(0.9)"/>
       </g>
     </g>
   </g>
