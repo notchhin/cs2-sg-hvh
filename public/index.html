@@ -210,7 +210,10 @@
         data.servers.forEach((server) => {
           const card = document.createElement('article');
           card.className = 'card glass-panel';
-          const occupancy = server.maxPlayers ? `${server.playersNow}/${server.maxPlayers}` : 'Unknown';
+          const playersNow = Number.isFinite(server.playersNow) ? server.playersNow : 0;
+          const maxPlayers = Number.isFinite(server.maxPlayers) ? server.maxPlayers : null;
+          const occupancyPrimary = maxPlayers === null ? 'Unknown' : `${playersNow} online`;
+          const occupancySecondary = maxPlayers === null ? 'Slot count unavailable' : `${maxPlayers} slots`;
           const onlineClass = server.online ? 'online' : 'offline';
           const sourceClass = server.liveQueryOk ? 'source-direct' : 'source-feed';
           const versionClass = server.isOutdated ? 'version-outdated' : 'version-current';
@@ -237,9 +240,10 @@
             </div>
             <h2>${escapeHtml(server.name)}</h2>
             <div class="stats">
-              <div class="stat-box compact-stat">
+              <div class="stat-box compact-stat players-stat">
                 <span class="label">Players</span>
-                <strong>${occupancy}</strong>
+                <strong>${occupancyPrimary}</strong>
+                <span class="stat-subline">${occupancySecondary}</span>
               </div>
               <div class="stat-box map-stat">
                 <span class="label">Map</span>
@@ -249,6 +253,7 @@
               <div class="stat-box compact-stat region-stat">
                 <span class="label">Region</span>
                 <strong class="flag-row"><img class="flag-icon" src="${flag}" alt="${escapeHtml(server.countryCode || 'flag')}" /></strong>
+                <span class="stat-subline">${escapeHtml(server.country || 'Singapore')}</span>
               </div>
             </div>
             <div class="card-actions">

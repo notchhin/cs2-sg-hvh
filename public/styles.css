@@ -388,6 +388,12 @@ button {
   border: 1px solid rgba(255,255,255,0.16);
 }
 
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .mini-stat strong,
 .stat-box strong,
 .players-header strong {
@@ -435,7 +441,19 @@ button {
 }
 
 .compact-stat {
-  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+}
+
+.players-stat strong {
+  margin-top: 2px;
+  font-size: 1.16rem;
+}
+
+.stat-subline {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(235, 245, 255, 0.68);
 }
 
 .map-stat {
@@ -454,6 +472,7 @@ button {
 }
 
 .region-stat {
+  align-items: center;
   text-align: center;
 }
 
@@ -461,6 +480,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  margin-top: 2px;
   gap: 8px;
 }
 
