@@ -240,6 +240,22 @@
         });
       }
 
+      function formatPlayTime(totalSeconds) {
+        const safeSeconds = Math.max(0, Math.round(Number(totalSeconds) || 0));
+        if (safeSeconds < 60) {
+          return `${safeSeconds}s`;
+        }
+
+        const minutes = Math.floor(safeSeconds / 60);
+        if (minutes < 60) {
+          return `${minutes}m`;
+        }
+
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+      }
+
       function render(data) {
         refreshedAtEl.textContent = new Date(data.refreshedAt).toLocaleString();
         trackedCountEl.textContent = data.totalTracked;
@@ -267,7 +283,7 @@
             ? `<ul class="player-list">${server.livePlayerNames.map((player) => `
                 <li>
                   <span class="player-name">${escapeHtml(player.name || '(unnamed player)')}</span>
-                  <span class="player-meta">${Math.round(player.durationSeconds || 0)}s</span>
+                  <span class="player-meta">${formatPlayTime(player.durationSeconds)}</span>
                 </li>
               `).join('')}</ul>`
             : `<p class="empty-players">${server.liveQueryOk ? 'No players in server right now.' : 'Direct player query unavailable right now.'}</p>`;
