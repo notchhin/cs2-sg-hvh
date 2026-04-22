@@ -7,9 +7,16 @@ const { URL } = require('url');
 const PORT = process.env.PORT || 8787;
 const QUERY_TIMEOUT_MS = 4000;
 const VISITOR_TTL_MS = 45_000;
+const LIVE_REFRESH_MS = 8_000;
+const SSE_HEARTBEAT_MS = 20_000;
 
 const publicDir = path.join(__dirname, 'public');
 const activeVisitors = new Map();
+const liveClients = new Set();
+
+let cachedServers = null;
+let lastFetchError = null;
+let fetchInFlight = null;
 
 function sendJson(res, status, data) {
   res.writeHead(status, {
@@ -354,19 +361,106 @@ async function fetchServers() {
   };
 }
 
+function sendSse(res, event, data) {
+  res.write(`event: ${event}\n`);
+  res.write(`data: ${JSON.stringify(data)}\n\n`);
+}
+
+function broadcastServers(data) {
+  for (const client of liveClients) {
+    sendSse(client, 'servers', data);
+  }
+}
+
+function broadcastError(error) {
+  for (const client of liveClients) {
+    sendSse(client, 'upstream-error', {
+      message: error.message,
+      at: new Date().toISOString()
+    });
+  }
+}
+
+async function refreshServers(force = false) {
+  if (!force && fetchInFlight) {
+    return fetchInFlight;
+  }
+
+  fetchInFlight = (async () => {
+    try {
+      const data = await fetchServers();
+      cachedServers = data;
+      lastFetchError = null;
+      broadcastServers(data);
+      return data;
+    } catch (error) {
+      lastFetchError = error;
+      broadcastError(error);
+      throw error;
+    } finally {
+      fetchInFlight = null;
+    }
+  })();
+
+  return fetchInFlight;
+}
+
+setInterval(() => {
+  refreshServers().catch(() => {});
+}, LIVE_REFRESH_MS);
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (url.pathname === '/api/presence') {
     const visitorId = url.searchParams.get('id');
     const count = touchVisitor(visitorId);
+    if (cachedServers) {
+      cachedServers = {
+        ...cachedServers,
+        activeVisitors: count
+      };
+      broadcastServers(cachedServers);
+    }
     sendJson(res, 200, { ok: true, activeVisitors: count });
+    return;
+  }
+
+  if (url.pathname === '/api/stream') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-store',
+      Connection: 'keep-alive'
+    });
+    res.write(': connected\n\n');
+    liveClients.add(res);
+
+    if (cachedServers) {
+      sendSse(res, 'servers', cachedServers);
+    } else if (lastFetchError) {
+      sendSse(res, 'upstream-error', {
+        message: lastFetchError.message,
+        at: new Date().toISOString()
+      });
+    }
+
+    const heartbeat = setInterval(() => {
+      res.write(': heartbeat\n\n');
+    }, SSE_HEARTBEAT_MS);
+
+    req.on('close', () => {
+      clearInterval(heartbeat);
+      liveClients.delete(res);
+      res.end();
+    });
+
+    refreshServers().catch(() => {});
     return;
   }
 
   if (url.pathname === '/api/servers') {
     try {
-      const data = await fetchServers();
+      const data = cachedServers || await refreshServers(true);
       sendJson(res, 200, data);
     } catch (error) {
       sendJson(res, 502, {
@@ -402,4 +496,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`HVH SG tracker running on http://localhost:${PORT}`);
+  refreshServers(true).catch((error) => {
+    console.error('Initial live refresh failed:', error.message);
+  });
 });

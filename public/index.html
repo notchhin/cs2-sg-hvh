@@ -198,6 +198,48 @@
         }
       }
 
+      let liveStream;
+      let reconnectTimer;
+
+      function connectLiveStream() {
+        if (liveStream) {
+          liveStream.close();
+        }
+
+        statusEl.textContent = 'Connecting to live updates...';
+        liveStream = new EventSource('/api/stream');
+
+        liveStream.addEventListener('open', () => {
+          statusEl.textContent = 'Live updates connected.';
+        });
+
+        liveStream.addEventListener('servers', (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            render(data);
+            statusEl.textContent = 'Live updates connected.';
+          } catch (error) {
+            console.error(error);
+          }
+        });
+
+        liveStream.addEventListener('upstream-error', (event) => {
+          try {
+            const detail = JSON.parse(event.data);
+            statusEl.textContent = `Live source hiccup: ${detail.message}`;
+          } catch (error) {
+            console.error(error);
+          }
+        });
+
+        liveStream.addEventListener('error', () => {
+          statusEl.textContent = 'Live stream interrupted. Reconnecting...';
+          liveStream.close();
+          clearTimeout(reconnectTimer);
+          reconnectTimer = setTimeout(connectLiveStream, 2000);
+        });
+      }
+
       function render(data) {
         refreshedAtEl.textContent = new Date(data.refreshedAt).toLocaleString();
         trackedCountEl.textContent = data.totalTracked;
@@ -299,11 +341,13 @@
         });
       }
 
-      refreshBtn.addEventListener('click', loadServers);
+      refreshBtn.addEventListener('click', () => {
+        loadServers();
+      });
       sendPresence();
       loadServers();
+      connectLiveStream();
       setInterval(sendPresence, 15000);
-      setInterval(loadServers, 10000);
     </script>
   </body>
 </html>
