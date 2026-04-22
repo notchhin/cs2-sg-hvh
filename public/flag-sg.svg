@@ -3,23 +3,23 @@
     <clipPath id="clip-circle">
       <circle cx="32" cy="32" r="30" />
     </clipPath>
-    <path id="sg-star" d="M0,-3.7 L1.08,-1.15 L3.85,-1.15 L1.62,0.44 L2.46,3.12 L0,1.5 L-2.46,3.12 L-1.62,0.44 L-3.85,-1.15 L-1.08,-1.15 Z" />
+    <path id="sg-star" d="M0,-3.2 L0.94,-0.98 L3.28,-0.98 L1.38,0.38 L2.08,2.66 L0,1.26 L-2.08,2.66 L-1.38,0.38 L-3.28,-0.98 L-0.94,-0.98 Z" />
   </defs>
 
   <g clip-path="url(#clip-circle)">
-    <rect width="64" height="64" fill="#ffffff"/>
+    <rect width="64" height="64" fill="#fff"/>
     <rect width="64" height="32" fill="#EF3340"/>
 
-    <g transform="translate(35 22)">
-      <circle cx="-9" cy="0" r="9.2" fill="#ffffff"/>
-      <circle cx="-5.9" cy="0" r="7.3" fill="#EF3340"/>
+    <g transform="translate(32 21.5)">
+      <circle cx="-6" cy="0" r="8.8" fill="#fff"/>
+      <circle cx="-2.8" cy="0" r="7.1" fill="#EF3340"/>
 
-      <g fill="#ffffff">
-        <use href="#sg-star" transform="translate(5.8 -6.5)"/>
-        <use href="#sg-star" transform="translate(11.5 -1.9) scale(0.9)"/>
-        <use href="#sg-star" transform="translate(9.2 4.9) scale(0.9)"/>
-        <use href="#sg-star" transform="translate(2.6 4.9) scale(0.9)"/>
-        <use href="#sg-star" transform="translate(0.3 -1.9) scale(0.9)"/>
+      <g fill="#fff">
+        <use href="#sg-star" transform="translate(8 -5.8)"/>
+        <use href="#sg-star" transform="translate(13 -1.4) scale(0.92)"/>
+        <use href="#sg-star" transform="translate(11 4.8) scale(0.92)"/>
+        <use href="#sg-star" transform="translate(5 4.8) scale(0.92)"/>
+        <use href="#sg-star" transform="translate(3 -1.4) scale(0.92)"/>
       </g>
     </g>
   </g>

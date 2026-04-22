@@ -473,6 +473,7 @@ button {
 
 .region-stat {
   align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
@@ -481,8 +482,7 @@ button {
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-top: 2px;
-  gap: 8px;
+  margin: 2px auto 0;
 }
 
 .flag-icon {
@@ -490,6 +490,7 @@ button {
   height: 28px;
   border-radius: 999px;
   display: block;
+  margin: 0 auto;
   object-fit: cover;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
 }
